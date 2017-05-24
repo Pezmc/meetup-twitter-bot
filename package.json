@@ -1,16 +1,30 @@
 {
-  "author": "Kevin O'Hara",
+  "author": "Pez Cuckow (Kevin O'Hara)",
   "name": "meetup-twitter-bot",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "dependencies": {
-    "request": "*",
-    "ntwitter": "*",
-    "colors": "*",
-    "optimist": "*"
+    "colors": "^1.1.2",
+    "minimist": "^1.2.0",
+    "request": "^2.81.0",
+    "twitter": "^1.7.0"
   },
   "devDependencies": {},
   "optionalDependencies": {},
   "engines": {
     "node": "0.6.17"
-  }
+  },
+  "description": "This is a simple node.js app that polls your [meetup.com](http://www.meetup.com) group and follows any of your members with a Twitter account from your Twitter account. The app contains the files necessary to run this on Heroku as well as locally.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Pezmc/meetup-twitter-bot.git"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Pezmc/meetup-twitter-bot/issues"
+  },
+  "homepage": "https://github.com/Pezmc/meetup-twitter-bot#readme"
 }

@@ -1,57 +1,57 @@
-var argv = require('optimist').argv
-var colors = require('colors');
-var meetup = require('./lib/meetup');
-var twitter = require('./lib/twitter');
-var Cache = require('./lib/cache');
+const colors = require('colors');
+const meetup = require('./lib/meetup');
+const twitter = require('./lib/twitter');
+const Cache = require('./lib/cache');
 
-var pollMinutes = (argv.p) ? argv.p : 60;
+const argv = require('minimist').argv
+const pollMinutes = (argv.p) ? argv.p : 60;
 
-var twit = new twitter.createConnection({
+const twit = new twitter.createConnection({
   consumer_key: process.env.TWITTER_CONSUMER_KEY,
   consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
   access_token_key: process.env.TWITTER_ACCESS_TOKEN,
   access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
 });
 
-var meet = meetup.createConnection(process.env.MEETUP_API_KEY);
+const meet = meetup.createConnection(process.env.MEETUP_API_KEY);
 
 function run() {
-  var cache = new Cache();
-  console.log('contacting meetup.com');
-  console.log('requesting twitterIds for group: ' + process.env.MEETUP_GROUP_NAME);
+  const cache = new Cache();
+  console.log('info'.yellow + ' Contacting meetup.com');
+  console.log('info'.yellow + ' Requesting twitterIds for group: ' + process.env.MEETUP_GROUP_NAME);
   meet.getMemberTwitterIds(process.env.MEETUP_GROUP_NAME, function(err, resp) {
     if(!err) {
-      console.log('retreived ' + resp.length + ' twitter ids from meetup');
+      console.log('success'.green + ' Retreived ' + resp.length + ' twitter names from meetup');
       for(var i=0; i<resp.length; i++) {
         // need to clean the names
-        var raw = resp[i];
+        let raw = resp[i];
         if(raw.indexOf('\.com\/') !== -1) {
           raw = raw.split('\.com\/')[1];
         }
         if(raw) cache.add('meetup', raw);
       }
-      console.log('contacting twitter.com');
+      console.log('info'.yellow + ' Contacting twitter.com');
       twit.getFollowedNames(function(err, resp) {
-        if(!err) {
-          console.log('retreived ' + resp.length + ' twitter ids from twitter');
-          for(var i=0; i<resp.length; i++) {
-            cache.add('twitter', resp[i]);
-          }
-          var diff = cache.diff();
-          if(diff.length > 0) {
-            console.log('attempting to follow ' + diff.length + ' twitter names (' + diff.join() + ')');
-            twit.followNames(diff, function(err, resp) {
-              if(!err) {
-                console.log('done!')
-              } else {
-                console.log('error'.red + ' ' + err.message); 
-              }
-            });
-          } else {
-            console.log('nobody to follow');
-          }
-        } else {
+        if(err) {
           console.log('error'.red + ' ' + err.message); 
+        }
+          
+        console.log('success'.green + ' Retreived ' + resp.length + ' twitter names from twitter');
+        for(let i=0; i<resp.length; i++) {
+          cache.add('twitter', resp[i]);
+        }
+        let diff = cache.diff();
+        if(diff.length > 0) {
+          console.log('info'.yellow + 'Attempting to follow ' + diff.length + ' twitter names (' + diff.join() + ')');
+          twit.followNames(diff, function(err, resp) {
+            if(err) {
+              return console.log('error'.red + ' ' + err.message);
+            }
+
+            console.log('success'.green + ` All done! Waiting ${pollMinutes} minutes...`);
+          });
+        } else {
+          console.log('success'.green + ' Nobody to follow');
         }
       });
     } else { 
@@ -60,8 +60,6 @@ function run() {
   });
 }
 
-var poll = setInterval(run, pollMinutes * 60000);
+setInterval(run, pollMinutes * 60000);
 
 run();
-
-
