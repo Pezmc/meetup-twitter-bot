@@ -3,7 +3,7 @@ const meetup = require('./lib/meetup');
 const twitter = require('./lib/twitter');
 const Cache = require('./lib/cache');
 
-const argv = require('minimist').argv
+const argv = require('minimist')(process.argv);
 const pollMinutes = (argv.p) ? argv.p : 60;
 
 const twit = new twitter.createConnection({
