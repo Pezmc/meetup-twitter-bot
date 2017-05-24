@@ -23,7 +23,7 @@ function run() {
     if(!err) {
       console.log('success'.green + ' Retreived ' + resp.length + ' twitter names from meetup');
       for(var i=0; i<resp.length; i++) {
-        // need to clean the names
+        // need to clean the names, some people write twitter.com/pezmc
         let raw = resp[i];
         if(raw.indexOf('\.com\/') !== -1) {
           raw = raw.split('\.com\/')[1];
