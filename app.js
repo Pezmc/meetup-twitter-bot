@@ -15,6 +15,71 @@ const twit = new twitter.createConnection({
 const meet = meetup.createConnection(process.env.MEETUP_API_KEY);
 
 function run() {
+  if (argv.follow) {
+    followMeetupMembers(argv.p);
+  }
+  if (argv.tweet) {
+    tweetTodaysMeetups(argv['dry-run']);
+  }
+  if (!argv.follow && !argv.tweet) {
+    Log.error('You need to chose either --tweet and/or --follow')
+  }
+}
+
+function tweetTodaysMeetups(dryRun) {
+  Log.info('Contacting meetup.com');
+  Log.info('Requesting events for group: ' + process.env.MEETUP_GROUP_NAME);
+  meet.getTodaysMeetups(process.env.MEETUP_GROUP_NAME, function(err, meetups) {
+    if (err) {
+      return Log.error(err.message);
+    }    
+
+    Log.success('Retreived ' + meetups.length + ' events from meetup');
+
+    for (let i = 0; i < meetups.length; i++) {
+      const meetup = meetups[i];
+      const status = getTwitterStatus(meetup);
+
+      if (dryRun) {
+        Log.info('Would have tweeted: ' + status);
+      } else {
+        Log.info(`Tweeting "${status}"`);
+        twit.tweet(getTwitterStatus(meetup), {
+          lat: meetup.venue.lat,
+          long: meetup.venue.lon
+        }, function(err, success) {
+          console.log(err, success);
+
+          if (err) {
+            return Log.error(err.message);
+          }
+
+          Log.success(`Tweet sent!`);
+        });
+      }
+    }
+  });
+}
+
+function getTwitterStatus(meetup) {
+  const time = new Date(meetup.time).toLocaleString('en-GB', { 
+    hour12: true, hour: 'numeric', minute: 'numeric' 
+  }).replace(' ', ''); // no space between numbers and AM/PM
+
+  const options = [
+    `Today we're meeting at ${meetup.venue.name} from ${time}, for the ${meetup.name}!`,
+    `Today we'll be at ${meetup.venue.name} from ${time}, for the ${meetup.name}!`,
+    `We're meeting from ${time} for the ${meetup.name} at ${meetup.venue.name}!`,
+    `Today the ${meetup.name} meets at ${meetup.venue.name} from ${time}`,
+    `The ${meetup.name} is today from ${time} at ${meetup.venue.name}.`
+  ];
+
+  const status = options[Math.floor(Math.random() * options.length)];
+
+  return status + ` ${meetup.link}`; 
+}
+
+function followMeetupMembers(pollMinutes) {
   const cache = new Cache();
   Log.info('Contacting meetup.com');
   Log.info('Requesting twitterIds for group: ' + process.env.MEETUP_GROUP_NAME);
@@ -64,6 +129,12 @@ function run() {
   });
 }
 
-setInterval(run, pollMinutes * 60000);
+function scheduleFollow(minutes) {
+  if (!minutes) {
+    return Log.info('Not scheduling following, -p wasn\'t set');
+  }
+  Log.success(`Waiting ${minutes} minutes...`);
+  setTimeout(followMeetupMembers, minutes * 60000);
+}
 
 run();

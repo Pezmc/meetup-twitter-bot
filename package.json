@@ -11,9 +11,9 @@
   "devDependencies": {},
   "optionalDependencies": {},
   "engines": {
-    "node": "0.6.17"
+    "node": "7.8.0"
   },
-  "description": "This is a simple node.js app that polls your [meetup.com](http://www.meetup.com) group and follows any of your members with a Twitter account from your Twitter account. The app contains the files necessary to run this on Heroku as well as locally.",
+  "description": "Polls your [meetup.com](http://www.meetup.com) group and can: follow you members with Twitter account, and send out a list of todays meetups.",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
