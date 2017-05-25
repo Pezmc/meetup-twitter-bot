@@ -16,7 +16,8 @@
   "description": "Polls your [meetup.com](http://www.meetup.com) group and can: follow you members with Twitter account, and send out a list of todays meetups.",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
   },
   "repository": {
     "type": "git",
