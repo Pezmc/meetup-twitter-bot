@@ -48,8 +48,6 @@ function tweetTodaysMeetups(dryRun) {
           lat: meetup.venue.lat,
           long: meetup.venue.lon
         }, function(err, success) {
-          console.log(err, success);
-
           if (err) {
             return Log.error(err.message);
           }
