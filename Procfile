@@ -1,1 +1,2 @@
-bot: node app.js -p 30
+tweet_meetups: node app.js --tweet
+follow_meetup_members: node app.js --follow
