@@ -16,7 +16,7 @@ const meet = meetup.createConnection(process.env.MEETUP_API_KEY);
 
 function run() {
   if (argv.follow) {
-    followMeetupMembers(argv.p);
+    followMeetupMembers(argv.p, argv['dry-run']);
   }
   if (argv.tweet) {
     tweetTodaysMeetups(argv['dry-run']);
@@ -38,22 +38,14 @@ function tweetTodaysMeetups(dryRun) {
 
     for (let i = 0; i < meetups.length; i++) {
       const meetup = meetups[i];
-      const status = getTwitterStatus(meetup);
-
-      if (dryRun) {
-        Log.info('Would have tweeted: ' + status);
+      if (argv.tweetMaxDelayMinutes) {
+        const waitTime = Math.floor(argv.tweetMaxDelayMinutes * Math.random(), 1);
+        Log.debug(`Sending tweet for "${meetup.name}" in ${waitTime} minutes!`);
+        setTimeout(function() {
+          sendTweetForMeetup(meetup, dryRun);
+        }, waitTime * 60000)
       } else {
-        Log.info(`Tweeting "${status}"`);
-        twit.tweet(getTwitterStatus(meetup), {
-          lat: meetup.venue.lat,
-          long: meetup.venue.lon
-        }, function(err, success) {
-          if (err) {
-            return Log.error(err.message);
-          }
-
-          Log.success(`Tweet sent!`);
-        });
+        sendTweetForMeetup(meetup, dryRun);
       }
     }
   });
@@ -77,7 +69,27 @@ function getTwitterStatus(meetup) {
   return status + ` ${meetup.link}`; 
 }
 
-function followMeetupMembers(pollMinutes) {
+function sendTweetForMeetup(meetup, dryRun) {
+  const status = getTwitterStatus(meetup);
+
+  if (dryRun) {
+    Log.info('Would have tweeted: ' + status);
+  } else {
+    Log.info(`Tweeting "${status}"`);
+    twit.tweet(getTwitterStatus(meetup), {
+      lat: meetup.venue.lat,
+      long: meetup.venue.lon
+    }, function(err, success) {
+      if (err) {
+        return Log.error(err.message);
+      }
+
+      Log.success(`Tweet sent!`);
+    });
+  }
+}
+
+function followMeetupMembers(pollMinutes, dryRun) {
   const cache = new Cache();
   Log.info('Contacting meetup.com');
   Log.info('Requesting twitterIds for group: ' + process.env.MEETUP_GROUP_NAME);
@@ -109,16 +121,21 @@ function followMeetupMembers(pollMinutes) {
       }
       let diff = cache.diff();
       if (diff.length > 0) {
-        Log.info('Attempting to follow ' + diff.length + ' twitter names (' + diff.join() + ')');
-        twit.followNames(diff, function(err, resp) {
-          if (err) {
-            Log.error(err.message);
-            return scheduleFollow(pollMinutes);;
-          }
-
-          Log.success('All done!');
+        if (dryRun) {
+          Log.info('Would have attempted to follow ' + diff.length + ' twitter names (' + diff.join() + ')');
           scheduleFollow(pollMinutes);
-        });
+        } else {
+          Log.info('Attempting to follow ' + diff.length + ' twitter names (' + diff.join() + ')');
+          twit.followNames(diff, function(err, resp) {
+            if (err) {
+              Log.error(err.message);
+              return scheduleFollow(pollMinutes);;
+            }
+
+            Log.success('All done!');
+            scheduleFollow(pollMinutes);
+          });
+        }
       } else {
         Log.success('Nobody to follow');
         scheduleFollow(pollMinutes);

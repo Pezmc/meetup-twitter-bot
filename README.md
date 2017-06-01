@@ -1,6 +1,6 @@
-# meetup.com twitter follow bot
+# Meetup.com Twitter Bot
 
-This is a simple node.js app that polls your [meetup.com](http://www.meetup.com) group and follows any of your members with a Twitter account from your Twitter account. The app contains the files necessary to run this on Heroku as well as locally.
+This is a simple node.js app that polls your [meetup.com](http://www.meetup.com) group, follows any of your members with a Twitter account from your Twitter account and sends out Tweets announcing the meetups. The app contains the files necessary to run this on Heroku, making use of the scheduler as well as locally.
 
 ## Setup
 
@@ -14,12 +14,20 @@ This is a simple node.js app that polls your [meetup.com](http://www.meetup.com)
 After setting the environment variables...
 
 ```bash
-$ node app.js --tweet --follow -p 60
+$ node app.js --dry-run --tweet --tweetMaxDelayMinutes 15 --follow -p 60
 ```
 
-`--tweet` Enables tweeting of todays meetups
-`--follow` Enables following of your meetup members
-`-p` flag specifies the polling interval for the following
+## Arguments
+
+- `--dry-run` Disables tweeting and following and logs info instead
+
+- `--tweet` Enables tweeting of todays meetups
+
+  - `--tweetMaxDelayMinutes` Sets the max minutes that tweets will be delayed by before sending
+
+- `--follow` Enables following of your meetup members
+
+  - `-p` flag specifies the polling interval for the following
 
 ## How to use on Heroku
 
@@ -35,4 +43,4 @@ $ node app.js --tweet --follow -p 60
 You can temporarily enable the processes for debugging, remember to scale them back, or the next push will trigger them again.
 
 1. heroku ps:scale tweet_meetups=1
-2. heroku ps:scale follow_meetup_members=1
+2. heroku ps:scale follow\_meetup_members=1
